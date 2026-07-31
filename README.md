@@ -118,14 +118,14 @@ ls -la practice
 ```
 
 ![빈 파일 생성](images/06_touch_test.png)
-빈파일 생성
+빈 텍스트 파일 생성
 
 ```bash
 echo 'Hello Codyssey' > practice/test.txt
 cat practice/test.txt
 ```
 
-글자를 텍스트파일네 넣고 확인
+글자를 텍스트파일에 넣고 내용 다시 확인
 
 ![내용 확인](images/07_echo_cat.png)
 
@@ -159,6 +159,9 @@ ls -l practice/test.txt
 # -rwxr-xr-x   (755: 소유자 읽기·쓰기·실행, 그룹/기타 읽기·실행)
 ```
 화면 하단 반쯤지나서 텍스타파일의 권한을 확인하고 변경
+소유자·그룹·기타 세 그룹에 대해 각각 읽기(r=4)·쓰기(w=2)·실행(x=1) 권한을 부여하는 방식, 세 자리 숫자는 각 그룹의 값을 합산, 맨 앞이 - 면 파일, d면 디렉토리, 디렉토리는 실행이 아니라 그 안으로 들어감
+
+
 ![파일 권한 변경](images/08_file_operations.png)
 
 **디렉토리 권한 변경 (전/후 비교)**
@@ -180,9 +183,7 @@ ls -ld practice
 chmod 700, 755로 권한이 바뀌는 것 확인 `-rwxr-xr-x` `-rwx---`   
 정확히 외워야 하는가?
 
-폴더에서는 `x`가 실행이 아니라 그 안으로 들어갈 수 있냐(cd 가능 여부)
-
-`r`만 있으면 목록은 보여도 들어가지지는 않는다고 합니다.
+폴더에서는 `x`가 실행이 아니라 그 안으로 들어갈 수 있냐(cd 가능 여부).
 
 ### 4.5 Docker 설치 및 데몬 동작 점검
 
@@ -210,14 +211,20 @@ docker ps -a                       # 종료된 컨테이너 포함 전체
 docker logs my-web-server | tail -10   # 컨테이너 로그
 docker stats --no-stream           # 리소스 사용량
 ```
+피에스만 하면 실행중인 이미지만, -a를 붙이면 종료된 것까지 전부 보여줌. 컨터이너는 꺼져도 자동삭제되지 않고 exited 상태로 남음
+
+이미지는 컨테이너를 만들기 위한 설계도(읽기 전용 템플릿)이고, 컨트이너는 그 이미지로 실제 실행되는 인스턴스. 같은 이미지로 여러개 컨테이너 동시에 만들 수 있음.
 
 ![docker ps](images/15_browser.png)
+도커 런을 하고 피에스를 함
 
 ![Docker 운영 명령 - images/ps](images/22_docker_ops1.png)
+도커 이미지스를 명령함
+
 ![Docker 운영 명령 - logs](images/22_docker_ops2.png)
 ![Docker 운영 명령 - stats](images/22_docker_ops3.png)
 
-`docker ps`는 지금 켜져 있는 것만, `docker ps -a`는 예전에 켰다가 꺼진 것까지 다 보여줍니다. 컨테이너는 꺼져도 자동으로 없어지지 않고 `Exited`라고 표시된 채로 남아 있어서, 계속 쌓이는 걸 직접 봤습니다.
+`docker ps`는 지금 켜져 있는 것만, `docker ps -a`는 예전에 켰다가 꺼진 것까지 다 보여줍니다. 컨테이너는 꺼져도 자동으로 없어지지 않고 `Exited`라고 표시된 채로 남아 있어서, 계속 쌓임.
 
 ### 4.7 컨테이너 실행 실습
 
@@ -251,6 +258,8 @@ docker exec -it ub-test bash -c "echo restarted"
 
 ![ubuntu 대화형 진입](images/23_ubuntu_interactive.png)
 
+-it의 아이는 인터랙티브(대화형 입력 전달), -t는 티티와이(터미널 화면 할당)임. 둘을 합치면 컨테이너 안에 직접 들어가 있는 것처럼 명령어 입력 가능.
+
 직접 해보고 헷갈렸던 걸 표로 정리해봤습니다.
 
 | 명령 | 뭘 하는지 | 컨테이너 상태 |
@@ -283,6 +292,12 @@ COPY index.html /usr/share/nginx/html/index.html
 
 **뭘 넣었고 왜 넣었는지**
 
+프롬은 베이스 이미지를 지정하는 것. 엔진엑스를 직접 설치하는게 아니라 이미 설치된 이미지를 가져다 씀
+
+라벨은 이미지에 이름표 부여
+
+카피는 내 컴퓨터 파일을 이미지 내부로 복사
+
 | 줄 | 하는 일 | 넣은 이유 |
 |---|---|---|
 | `FROM nginx:alpine` | alpine이라는 가벼운 버전의 nginx 사용 | 용량 작고, 웹서버 설치를 처음부터 안 해도 돼서 |
@@ -298,6 +313,7 @@ COPY index.html /usr/share/nginx/html/index.html
 docker build -t my-web:1.0 .
 docker images | grep my-web
 ```
+도커 빌드 명령으로 설계도를 실제 이미지로 만듬. 기존 이미지를 그대로 쓰는게 아니라, 설정은 안건드리고 컨텐츠만 바꾼 커스터마이징
 
 ![빌드](images/14_docker_build.png)
 
@@ -308,6 +324,7 @@ docker run -d -p 8080:80 --name my-web-server my-web:1.0
 docker ps
 curl http://localhost:8080
 ```
+컨테이너는 호스트(내 컴퓨터)와 네트워크가 격리. 컨테이너 안에서 nginx가 80번 포트로 정상 동작해도, 이 격리 때문에 호스트 브라우저에서는 기본적으로 접근할 수 없음. 그래서 서로 연결하고, 이후 브라우저에서 로컬호스트 8080으로 접속하면 그 요청이 컨테이너 내부 80번 포트로 전달됨.
 
 ![실행 및 curl 응답](images/15_browser.png)
 ![브라우저 접속](images/16_browser.png)
@@ -325,6 +342,7 @@ docker run -d -p 8081:80 \
 # 호스트에서 index.html 수정
 # 브라우저 새로고침 → 변경 후 화면 캡처
 ```
+바인드마운트는 호스트의 특정 폴더를 그대로 연겨래서 파일수정이 실시간 반영되는 것(개발용), 볼륨은 도커가 관리하는 영역에 데이터를 오래 보관하는 것(운영용)
 
 ![바인드 마운트 - 변경 전](images/24_bind_before.png)
 ![바인드 마운트 - 변경 후](images/25_bind_after.png)
@@ -347,6 +365,8 @@ docker run -d --name vol-test2 -v mydata:/data ubuntu sleep infinity
 docker exec vol-test2 cat /data/hello.txt
 # hello
 ```
+
+컨테이너 자체의 파일 시스템은 컨테이너가 삭제되면 같이 사라짐, 볼륨은 이 컨테이너와 분리된 도커가 관리하는 별도의 공간임.
 
 컨테이너를 완전히 지운 다음에 새 컨테이너를 하나 더 만들어서 같은 볼륨을 연결해봤는데, 아까 저장한 `hello`라는 내용이 그대로 남아 있음. 컨테이너를 지워도 볼륨 안의 데이터는 안 지워진다는 걸 확인.
 
@@ -400,7 +420,7 @@ git push -u origin main
 
 **Git이랑 GitHub 차이**
 
-Git은 제 컴퓨터 안에서만 돌아가는 프로그램이고, GitHub는 그걸 인터넷에 올려서 다른 사람이랑 공유하는 사이트. `git commit`까지는 제 컴퓨터 안에만 기록이 남고, `git push`를 해야 GitHub에 실제로 올라감.
+Git은 제 컴퓨터 안에서만 돌아가는 프로그램이고, GitHub는 그걸 인터넷에 올려서 다른 사람이랑 공유하는 사이트. `git commit`까지는 컴퓨터 안에만 기록이 남고, `git push`를 해야 GitHub에 실제로 올라감.
 
 ---
 
